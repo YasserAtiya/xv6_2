@@ -39,12 +39,19 @@ allocproc(void)
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+   {
     if(p->state == UNUSED)
-      goto found;
+         goto found;
+   }
+ 
+
   release(&ptable.lock);
   return 0;
 
 found:
+  // DO NOT KNOW WHEN TO DO THIS SO AM JUST DOING IT HERE
+  p->priority = 50;
+  cprintf("Initialized priority\n");
   p->state = EMBRYO;
   p->pid = nextpid++;
   release(&ptable.lock);
@@ -65,6 +72,7 @@ found:
   sp -= 4;
   *(uint*)sp = (uint)trapret;
 
+  p->priority = 50;
   sp -= sizeof *p->context;
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
@@ -266,16 +274,53 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *boss;
+  //struct proc *lastused; 
+  int highestpriority = -1;
+  int collecinghighestpriority = 1;
+  int count = 0;
 
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
+    count = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    boss = ptable.proc;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      count++;
+      cprintf("Times iterated: %d\n", count);
+        cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
+        cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
+
+      if(collecinghighestpriority)
+      {
+
+         if(count == 64)
+         {
+          cprintf("No longer collecting highest priority\n");
+          collecinghighestpriority = 0;
+         }
+
+
+
+        if(p->priority > highestpriority)
+         {
+            boss = p;
+            highestpriority = p->priority;
+
+         }
+         else
+          continue;
+
+        if(p->state != RUNNABLE)
+        {
+            continue;
+        }
+
+      }
+
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -288,6 +333,7 @@ scheduler(void)
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
+      collecinghighestpriority = 1;
       proc = 0;
     }
     release(&ptable.lock);
