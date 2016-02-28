@@ -7,6 +7,13 @@
 #include "mmu.h"
 #include "proc.h"
 
+
+int 
+sys_setpriority(void)
+{
+  return -1;
+}
+
 int
 sys_fork(void)
 {

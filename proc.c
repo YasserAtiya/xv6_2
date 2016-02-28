@@ -1,3 +1,5 @@
+//Working.cpp
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -51,7 +53,7 @@ allocproc(void)
 found:
   // DO NOT KNOW WHEN TO DO THIS SO AM JUST DOING IT HERE
   p->priority = 50;
-  cprintf("Initialized priority\n");
+//  cprintf("Initialized priority\n");
   p->state = EMBRYO;
   p->pid = nextpid++;
   release(&ptable.lock);
@@ -281,6 +283,7 @@ scheduler(void)
   int count = 0;
 
   for(;;){
+//    cprintf("Back at top of loop\n");
     // Enable interrupts on this processor.
     sti();
     count = 0;
@@ -289,23 +292,28 @@ scheduler(void)
     boss = ptable.proc;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-      count++;
-      cprintf("Times iterated: %d\n", count);
-        cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
-        cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
+        if(p->state != RUNNABLE)
+        {
+ //           cprintf("Not runnable\n");
+            continue;
+        }
+
+        count++;
+//      cprintf("Times iterated: %d\n", count);
+//      cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
+//      cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
 
       if(collecinghighestpriority)
       {
 
          if(count == 64)
          {
-          cprintf("No longer collecting highest priority\n");
+//          cprintf("No longer collecting highest priority\n");
           collecinghighestpriority = 0;
          }
 
 
-
-        if(p->priority > highestpriority)
+        if(p->priority >= highestpriority)
          {
             boss = p;
             highestpriority = p->priority;
@@ -314,18 +322,17 @@ scheduler(void)
          else
           continue;
 
-        if(p->state != RUNNABLE)
-        {
-            continue;
-        }
 
       }
+      p = boss;
+
 
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       proc = p;
+//      cprintf("Running: %s\nPriority: %d\n", p->name, p->priority);
       switchuvm(p);
       p->state = RUNNING;
       swtch(&cpu->scheduler, proc->context);
@@ -337,7 +344,7 @@ scheduler(void)
       proc = 0;
     }
     release(&ptable.lock);
-
+//    cprintf("Done scheduling\n");
   }
 }
 
