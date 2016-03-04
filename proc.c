@@ -509,7 +509,11 @@ wakeup1(void *chan)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan)
-      p->state = RUNNABLE;
+      {
+        p->state = RUNNABLE;
+        //Where we increase priority upon completion of wait
+        p->priority += 2;
+      }
 }
 
 // Wake up all processes sleeping on chan.
