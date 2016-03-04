@@ -271,77 +271,140 @@ wait(void)
 //  - choose a process to run
 //  - swtch to start running that process
 //  - eventually that process transfers control
-//      via swtch back to the scheduler.
+//      via swtch back to theS scheduler.
 void
 scheduler(void)
 {
-  struct proc *p;
+
+  //Processes that we use as holders
+  struct proc *p, *p2, *p3;
+
+  //Highest priority process
   struct proc *boss;
-  //struct proc *lastused; 
+
+  //Last used process
+  struct proc *lastused; 
+  
+  //Highest priority found in loop
   int highestpriority = -1;
-  int collecinghighestpriority = 1;
+  
+  //Bool indicating the fact that we found process
+  int foundrunnableprocess = 0;
+
+  //Count, just for printing reasons
+  //Counts to 64(NPROC)
   int count = 0;
 
+  //Boolean for round robin
+  int rr = 0;
+
+  //Infinite loop
   for(;;){
-//    cprintf("Back at top of loop\n");
+    //cprintf("Back at top of loop\n");
     // Enable interrupts on this processor.
     sti();
     count = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    boss = ptable.proc;
+
+    //Loop through ptable and collect running process and run it
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-        if(p->state != RUNNABLE)
-        {
- //           cprintf("Not runnable\n");
-            continue;
-        }
 
-        count++;
-//      cprintf("Times iterated: %d\n", count);
-//      cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
-//      cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
-
-      if(collecinghighestpriority)
+      //Loop through ptable and check highest priority, record that
+      for(p2 = ptable.proc; p2 < &ptable.proc[NPROC]; p2++)
       {
 
-         if(count == 64)
-         {
-//          cprintf("No longer collecting highest priority\n");
-          collecinghighestpriority = 0;
-         }
+          //cprintf("Process number: %d\nName: %s\n", count, p2->name);
 
+          //Count incremented
+          count++;
 
-        if(p->priority >= highestpriority)
-         {
-            boss = p;
-            highestpriority = p->priority;
+          //If a process is not runnable, skip it
+          if(p2->state != RUNNABLE)
+          {
+            //cprintf("Not runnable\n");
+            continue;
+          }
 
-         }
-         else
-          continue;
+          //Got passed not runnable conditional
+          //Set flag to true 
+          foundrunnableprocess = 1;
 
+          //If this process is has the highest priority we have found so far, record that
+          if(p2->priority > highestpriority)
+          {
+
+              //Set new highest process and highest priority values
+              highestpriority = p2->priority;
+              boss = p2;
+
+          }
+          //Otherwise, if we have found another process with the same highest priority, set round robin
+          else if(p2->priority == highestpriority)
+          {
+              rr = 1;
+          }
+
+          //cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
+          //cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
 
       }
+
+      //Reset round robin
+      count = 0;
+
+      //If we have not found a runnable process
+      if(!foundrunnableprocess)
+        {
+          //cprintf("Did not find running process\n");
+          break;
+        }
+
+      //If we need to perform round robin
+      if(rr)
+      {
+
+          //cprintf("Initiating Round Robin\n");
+
+          //Loop through to next tying process as long as it was not last used 
+          for(p3 = boss; p3 < &ptable.proc[NPROC]; p3++)
+          {
+
+              //Found a tying process
+              if(p3->priority == highestpriority && p3 != lastused)
+                {
+
+                    //cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
+                  
+                    //Set as new boss and exit loop
+                    boss = p3;
+                    break;
+                }
+          }
+      }
+
+      //Set to last highest found priority process
       p = boss;
-
-
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       proc = p;
-//      cprintf("Running: %s\nPriority: %d\n", p->name, p->priority);
       switchuvm(p);
       p->state = RUNNING;
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
 
+      //cprintf("Running Program: %s\nPriority: %d\n", p->name, p->priority);
+
+
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      collecinghighestpriority = 1;
       proc = 0;
+      foundrunnableprocess = 0;
+      highestpriority = 0;
+      lastused = boss;
     }
     release(&ptable.lock);
 //    cprintf("Done scheduling\n");
