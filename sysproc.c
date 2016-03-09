@@ -11,7 +11,31 @@
 int 
 sys_setpriority(void)
 {
-  return -1;
+  int oldpriority;
+  int newpriority;
+
+  //Get current priority for the given process
+  oldpriority = proc->priority;
+  
+  //uses argint to get new priority from user space
+  if(argint(0, &newpriority) < 0)
+    return -1; //Attaches top of stack to pid
+  
+  if(newpriority < 0 && newpriority > 200)
+  {
+    cprintf("%s \n", "The priority is outside the permited bounds.");
+    return oldpriority;
+  }
+
+  //set current priority to the new priority
+  proc->priority = newpriority;
+  
+  //if priority is now lower than original, reschedule
+  if(newpriority < oldpriority)
+    yield();
+
+  //return the old priority
+  return oldpriority;
 }
 
 int
