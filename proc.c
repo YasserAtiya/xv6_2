@@ -286,7 +286,7 @@ scheduler(void)
   struct proc *lastused; 
   
   //Highest priority found in loop
-  int highestpriority = -1;
+  int highestpriority = 200;
   
   //Bool indicating the fact that we found process
   int foundrunnableprocess = 0;
@@ -332,7 +332,7 @@ scheduler(void)
           foundrunnableprocess = 1;
 
           //If this process is has the highest priority we have found so far, record that
-          if(p2->priority > highestpriority)
+          if(p2->priority < highestpriority)
           {
 
               //Set new highest process and highest priority values
@@ -403,11 +403,11 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       proc = 0;
       foundrunnableprocess = 0;
-      highestpriority = 0;
+      highestpriority = 200;
       lastused = boss;
     }
     release(&ptable.lock);
-//    cprintf("Done scheduling\n");
+    //cprintf("Done scheduling\n");
   }
 }
 

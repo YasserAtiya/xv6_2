@@ -14,6 +14,7 @@ sys_setpriority(void)
   int oldpriority;
   int newpriority;
 
+  cprintf("%s \n", "1. In here");
   //Get current priority for the given process
   oldpriority = proc->priority;
   
@@ -29,10 +30,11 @@ sys_setpriority(void)
 
   //set current priority to the new priority
   proc->priority = newpriority;
-  
+  cprintf("%s \n", "2. In here");
   //if priority is now lower than original, reschedule
   if(newpriority < oldpriority)
-    yield();
+    cprintf("%s \n", "3. In here");
+    //yield();
 
   //return the old priority
   return oldpriority;
