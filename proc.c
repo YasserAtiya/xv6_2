@@ -305,7 +305,6 @@ scheduler(void)
 
   //Infinite loop
   for(;;){
-    //cprintf("Back at top of loop\n");
     // Enable interrupts on this processor.
     sti();
     count = 0;
@@ -351,27 +350,16 @@ scheduler(void)
               rr = 1;
           }
 
-          //cprintf("Highest priority process: %s\nPriority: %d\n", boss->name, boss->priority);
-          //cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
-
       }
-
-      //Reset round robin
-      //count = 0;
-
       //If we have not found a runnable process
       if(!foundrunnableprocess)
         {
-          //cprintf("Did not find running process\n");
           break;
         }
 
       //If we need to perform round robin
       if(rr)
       {
-
-          //cprintf("Initiating Round Robin\n");
-
           //Loop through to next tying process as long as it was not last used 
           for(p3 = boss; p3 < &ptable.proc[NPROC]; p3++)
           {
@@ -379,9 +367,6 @@ scheduler(void)
               //Found a tying process
               if(p3->priority == highestpriority && p3 != lastused)
                 {
-
-                    //cprintf("Current priority process: %s\nPriority: %d\n\n", p->name, p->priority);
-                  
                     //Set as new boss and exit loop
                     boss = p3;
                     break;
@@ -406,6 +391,7 @@ scheduler(void)
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
+      //reset values
       proc = 0;
       foundrunnableprocess = 0;
       highestpriority = 201;
@@ -413,7 +399,6 @@ scheduler(void)
       rr = 0;
     }
     release(&ptable.lock);
-    //cprintf("Done scheduling\n");
   }
 }
 
