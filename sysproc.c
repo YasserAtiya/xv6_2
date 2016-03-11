@@ -1,3 +1,9 @@
+/*
+-------------------------------------------------------------
+-------WORK DONE BY YASSER ATIYA AND RICARDO ROMERO----------
+-------------------------------------------------------------
+*/
+
 #include "types.h"
 #include "x86.h"
 #include "defs.h"
@@ -14,27 +20,24 @@ sys_setpriority(void)
   int oldpriority;
   int newpriority;
 
-  cprintf("%s \n", "1. In here");
   //Get current priority for the given process
   oldpriority = proc->priority;
-  
+
   //uses argint to get new priority from user space
   if(argint(0, &newpriority) < 0)
     return -1; //Attaches top of stack to pid
   
+  //if priority out of bounds
   if(newpriority < 0 && newpriority > 200)
   {
-    cprintf("%s \n", "The priority is outside the permited bounds.");
     return oldpriority;
   }
 
   //set current priority to the new priority
   proc->priority = newpriority;
-  cprintf("%s \n", "2. In here");
   //if priority is now lower than original, reschedule
   if(newpriority < oldpriority)
-    cprintf("%s \n", "3. In here");
-    //yield();
+    yield();
 
   //return the old priority
   return oldpriority;

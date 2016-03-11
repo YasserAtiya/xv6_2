@@ -1,3 +1,8 @@
+/*
+-------------------------------------------------------------
+-------WORK DONE BY YASSER ATIYA AND RICARDO ROMERO----------
+-------------------------------------------------------------
+*/
 //Working.cpp
 
 #include "types.h"
@@ -283,10 +288,10 @@ scheduler(void)
   struct proc *boss;
 
   //Last used process
-  struct proc *lastused; 
+  struct proc *lastused = 0; 
   
   //Highest priority found in loop
-  int highestpriority = 200;
+  int highestpriority = 201;
   
   //Bool indicating the fact that we found process
   int foundrunnableprocess = 0;
@@ -352,7 +357,7 @@ scheduler(void)
       }
 
       //Reset round robin
-      count = 0;
+      //count = 0;
 
       //If we have not found a runnable process
       if(!foundrunnableprocess)
@@ -403,8 +408,9 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       proc = 0;
       foundrunnableprocess = 0;
-      highestpriority = 200;
+      highestpriority = 201;
       lastused = boss;
+      rr = 0;
     }
     release(&ptable.lock);
     //cprintf("Done scheduling\n");
@@ -512,7 +518,10 @@ wakeup1(void *chan)
       {
         p->state = RUNNABLE;
         //Where we increase priority upon completion of wait
-        p->priority += 2;
+        if(p->priority >= 2)
+        {
+          p->priority -= 2;
+        }
       }
 }
 

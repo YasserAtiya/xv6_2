@@ -105,7 +105,11 @@ trap(struct trapframe *tf)
   if(proc && proc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER)
     {
       //Where we decrease priority on forced yield for aging purposes.
-      proc->priority -= 2;
+      //Checks for range
+      if(proc->priority <= 198)
+      {
+        proc->priority += 2;
+      }
       yield();
     }
   // Check if the process has been killed since we yielded
